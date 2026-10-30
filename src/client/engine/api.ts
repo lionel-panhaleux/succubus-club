@@ -1,6 +1,6 @@
-/* zvtes protocol 2.13.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.19.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.13.0'
+export const PROTOCOL_VERSION = '2.19.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -781,10 +781,17 @@ export type Event = {
           kind: 'looked'
           seat: number
           /**
-           * `library`: the top of the looking seat's own library, top first
-           * (Anna "Dictatrix11" Suljic); absent, the hand.
+           * `library`: the top of `seat`'s library, top first — the looking
+           * seat's own (Anna "Dictatrix11" Suljic) or the active Methuselah's
+           * (Weirding Stone); absent, the hand.
            */
           zone?: Zone | null
+      }
+    | {
+          cards: Card[]
+          kind: 'hand'
+          open: boolean
+          seat: number
       }
     | {
           card: Card
@@ -1052,10 +1059,7 @@ export type Marker = {
     text?: string | null
 }
 
-/**
- * Public state on a minion beyond blood and cards (completed with
- * the host, A3).
- */
+/** Public state on a minion beyond blood and cards. */
 export type MarkerKind =
     | 'hostage'
     | 'nightmare'
@@ -1197,6 +1201,7 @@ export type OptionKind =
     | 'diablerise'
     | 'cancel_combat'
     | 'withdraw_from_game'
+    | 'follow_path'
     | 'unknown'
 
 /**
@@ -1384,11 +1389,19 @@ export type Purpose =
     | 'redraw'
     | 'gain_conviction'
     | 'burn_convictions'
+    | 'x_convictions'
     | 'avenge_imbued'
     | 'name_conviction'
     | 'power_search'
     | 'may_cancel_combat'
     | 'put_found_on'
+    | 'reduction_at_resolution'
+    | 'dual_form_kept'
+    | 'ash_to_library_top'
+    | 'cut_library'
+    | 'retake_from_ash'
+    | 'may_lock_for_blood'
+    | 'may_burn_looked_master'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1418,10 +1431,7 @@ export type ReferendumView = {
     votes_for: number
 }
 
-/**
- * What a chosen minion or Methuselah becomes for the card choosing it
- * (completed with the host, A3).
- */
+/** What a chosen minion or Methuselah becomes for the card choosing it. */
 export type Role =
     | 'does_not_unlock'
     | 'unblockable_non_bleed'
@@ -1670,6 +1680,10 @@ export type Trait =
     | 'scarce'
     | 'sterile'
     | 'seraph'
+    | 'path_of_caine'
+    | 'path_of_cathari'
+    | 'path_of_death_and_the_soul'
+    | 'path_of_power_and_the_inner_voice'
     | 'unknown'
 
 /**

@@ -3,8 +3,10 @@
         v-if="engine.looked"
         class="engine-looked"
         :title="
-            engine.looked.library ?
+            engine.looked.library && engine.looked.own ?
                 'The top of your library, as you looked at it'
+            : engine.looked.library ?
+                `The top of P${engine.looked.seat + 1}'s library, as you looked at it`
             :   `P${engine.looked.seat + 1}'s hand, as you looked at it`
         "
     >
@@ -24,7 +26,8 @@
 <script setup lang="ts">
 /**
  * A game with the rules engine : the hand the user looked at ( SchreckNET, Vaticination ), or the
- * top of their own library ( Anna "Dictatrix11" Suljic ), its cards' names hovered and pinned
+ * top of a library, their own ( Anna "Dictatrix11" Suljic ) or the active Methuselah's ( Weirding
+ * Stone ), its cards' names hovered and pinned
  * like the log's, until closed. The look ends with its action : the table hides those cards
  * again at once.
  */

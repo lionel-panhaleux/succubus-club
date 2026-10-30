@@ -464,6 +464,7 @@ function tell(current: Running, out: EngineOut) {
             engine.looked = {
                 seat: event.seat,
                 library: event.zone == 'library',
+                own: event.seat == out.view.viewer,
                 cards: event.cards.flatMap(card => (card.id != null ? [card.id] : [])),
             }
         }

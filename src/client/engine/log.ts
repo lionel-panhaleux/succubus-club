@@ -514,7 +514,7 @@ export class EngineLogBuilder {
                 this.append(block.entry, [{ text: 'fails' }])
                 return
             }
-            // A hand ( or the top of their own library ) the user looked at : a top-level line, kept in sight when its action folds
+            // A hand ( or the top of a library, their own or the active Methuselah's ) the user looked at : a top-level line, kept in sight when its action folds
             case 'looked': {
                 const cards = e.cards.flatMap((card, i) => [
                     ...(i > 0 ? [{ text: ', ' }] : []),
@@ -523,8 +523,14 @@ export class EngineLogBuilder {
                 this.line(
                     this.viewer,
                     [
-                        ...(e.zone == 'library' ?
+                        ...(e.zone == 'library' && e.seat == this.viewer ?
                             [{ text: 'looks at the top of their library: ' }]
+                        : e.zone == 'library' ?
+                            [
+                                { text: 'looks at the top of ' },
+                                this.seatSegment(e.seat),
+                                { text: "'s library: " },
+                            ]
                         :   [
                                 { text: 'looks at ' },
                                 this.seatSegment(e.seat),
