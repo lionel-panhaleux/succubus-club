@@ -233,8 +233,13 @@ export class EngineHost {
         return { host, joined: host.joined }
     }
 
-    // The game left ( another started, the table reset ) : its connection closed, never joined again
+    // The game left ( another started, the table reset ) : ended on the server, or it would count as
+    // live until its idle timeout and hold a deploy ; its connection closed, never joined again.
+    // A socket down leaves it to the timeout
     close() {
+        if (!this.over && this.ws.readyState == WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'leave' }))
+        }
         this.over = true
         this.ws.close()
         forgetSeat(this.game)
