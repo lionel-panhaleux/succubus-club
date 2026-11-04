@@ -1,8 +1,12 @@
 <template>
-    <!-- Keys typed here are the report's, not the table's commands ( Space passes ) -->
+    <!-- Keys typed here are the report's, not the table's commands ( Space passes ) ; pointers too :
+         the top area forwards them to the table, its preventDefault keeping the text from focus -->
     <dialog
         ref="dialogRef"
         class="engine-report-modal"
+        @pointerdown.stop
+        @pointerup.stop
+        @pointermove.stop
         @keydown.stop
         @keyup.stop
     >
