@@ -15,6 +15,7 @@ import type {
     Out,
     SpecError,
     TableView,
+    TaughtDecks,
     Window,
 } from '@/client/engine/api.ts'
 import { DeckList } from '@/shared/types/gateway.ts'
@@ -51,6 +52,19 @@ export const ENGINE_SERVER = import.meta.env.VITE_ENGINE_SERVER ?? 'https://engi
 // The decks the engine ships : [name, deck list]
 export async function engineCatalog(): Promise<[string, DeckList][]> {
     const res = await fetch(`${ENGINE_SERVER}/catalog`)
+    if (!res.ok) {
+        throw new Error(`The engine server cannot be reached : ${res.status}`)
+    }
+    return res.json()
+}
+
+// The decks the served bot plays worst, weakest first : null while the server has no measure for
+// its weights ( 404 )
+export async function engineTaught(): Promise<TaughtDecks | null> {
+    const res = await fetch(`${ENGINE_SERVER}/catalog/taught`)
+    if (res.status == 404) {
+        return null
+    }
     if (!res.ok) {
         throw new Error(`The engine server cannot be reached : ${res.status}`)
     }

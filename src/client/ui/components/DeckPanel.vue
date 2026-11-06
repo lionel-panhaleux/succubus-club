@@ -287,6 +287,42 @@
                     </div>
                 </div>
 
+                <!-- Teach the bot Tab -->
+                <div
+                    v-if="activeTab === TAUGHT_TAB && taught"
+                    class="tab-content"
+                >
+                    <div
+                        v-if="isLoading"
+                        class="loading-message"
+                    >
+                        Loading the deck...
+                    </div>
+                    <div
+                        v-else
+                        class="taught-decks"
+                    >
+                        <p class="taught-intro">The bot plays these decks worst : show it how.</p>
+                        <button
+                            v-for="deck in taughtDecks"
+                            :key="deck.twda"
+                            class="action-btn taught-btn"
+                            @click="loadFromTaught(deck)"
+                        >
+                            <span class="taught-name">{{ deck.title }}</span>
+                            <span class="taught-event">{{ deck.event }}, {{ deck.date }}</span>
+                            <span class="taught-measure">
+                                {{ percent(deck.vp_share) }} of the VPs at its tables,
+                                {{ deck.wins }} {{ deck.wins == 1 ? 'win' : 'wins' }} in
+                                {{ deck.games }} games
+                            </span>
+                        </button>
+                        <p class="taught-how">
+                            Measured {{ taught.measured }} : {{ taught.measure }}
+                        </p>
+                    </div>
+                </div>
+
                 <!-- View Deck Tab -->
                 <div
                     v-if="activeTab === 'view-deck'"
@@ -375,6 +411,8 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { engineTaught } from '@/client/engine/host.ts'
+import type { TaughtDeck, TaughtDecks } from '@/client/engine/api.ts'
 import { useBusStore } from '@/client/store/bus.ts'
 import DeckViewer from '@/client/ui/components/DeckViewer.vue'
 import TopPanel from '@/client/ui/components/TopPanel.vue'
@@ -414,16 +452,18 @@ const activeTab = ref('history')
 function onOpen() {
     activeTab.value = bus.deckPanelInitialTab
     bus.deckPanelInitialTab = 'history'
+    loadTaught()
 }
 
-const tabs = [
+const tabs = computed(() => [
     { id: 'history', title: 'History' },
     { id: 'vdb-import', title: 'VDB Import' },
     { id: 'vtesdecks-import', title: 'VTES Decks Import' },
     { id: 'amaranth-import', title: 'Amaranth Import' },
     { id: 'text', title: 'Text Import' },
     { id: 'preconstructed', title: 'Preconstructed' },
-]
+    ...(taughtDecks.value.length ? [{ id: TAUGHT_TAB, title: 'Teach the bot' }] : []),
+])
 
 const SUCCESS_TAB = 'success'
 
@@ -633,6 +673,31 @@ function loadFromPrecon(setId: string, preconId: string, name: string) {
     )
 }
 
+/** Teach the bot **/
+
+const TAUGHT_TAB = 'taught'
+
+const taught = ref<TaughtDecks | null>(null)
+// The recent ones : the tab is about the decks played now
+const taughtDecks = computed(() => taught.value?.decks.filter(deck => deck.recent) ?? [])
+
+// No tab when the server has no measure for its weights, or cannot be reached
+async function loadTaught() {
+    try {
+        taught.value = await engineTaught()
+    } catch {
+        taught.value = null
+    }
+}
+
+function percent(share: number) {
+    return `${Math.round(share * 100)}%`
+}
+
+function loadFromTaught(deck: TaughtDeck) {
+    loadDeck(() => getOrImportPrecon(`twda-${deck.twda}`, deck.name, deck.list))
+}
+
 /** View Deck **/
 
 const viewingDeckCards = ref<DeckList | null>(null)
@@ -830,6 +895,43 @@ $max-width: 1200px;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+.taught-decks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.taught-intro {
+    color: $pearl-grey;
+    font-size: 1.1rem;
+    font-family: serif;
+    margin: 0 0 0.5rem 0;
+}
+
+.taught-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    text-align: left;
+
+    .taught-name {
+        font-weight: 600;
+    }
+
+    .taught-event,
+    .taught-measure {
+        color: $silver-grey;
+        font-size: 0.85rem;
+    }
+}
+
+.taught-how {
+    color: $silver-grey;
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0 0;
 }
 
 .success-panel {

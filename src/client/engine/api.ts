@@ -1,6 +1,6 @@
-/* zvtes protocol 2.19.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.22.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.19.0'
+export const PROTOCOL_VERSION = '2.22.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -1347,6 +1347,18 @@ export type Purpose =
     | 'lock_for_pool'
     | 'steal_for_corruption'
     | 'make_anarch'
+    | 'burn_blood_to_anarch'
+    | 'gain_victim_discipline'
+    | 'may_join_combat'
+    | 'move_clot'
+    | 'clot_fate'
+    | 'award_trophy'
+    | 'take_chosen'
+    | 'choose_card_circle'
+    | 'burn_or_fail'
+    | 'prey_slot_half'
+    | 'may_new_combat'
+    | 'swap_equip_from_prey'
     | 'ashur_picks'
     | 'becomes_anarch'
     | 'anarch_convert'
@@ -1402,6 +1414,16 @@ export type Purpose =
     | 'retake_from_ash'
     | 'may_lock_for_blood'
     | 'may_burn_looked_master'
+    | 'may_move_blood'
+    | 'may_fail_action'
+    | 'may_lock_to_fight'
+    | 'search_onto'
+    | 'hand_card_away'
+    | 'exchange_looked'
+    | 'may_burn_for_block'
+    | 'may_bottom_looked'
+    | 'may_return_discards'
+    | 'burn_over_capacity'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1632,6 +1654,52 @@ export type Target =
           copy: number
           kind: 'card'
       }
+
+/** A deck measured, with its decklist. */
+export type TaughtDeck = {
+    /** The event's day, `YYYY-MM-DD`. */
+    date: string
+    /** The event it won. */
+    event: string
+    /** Games played with it. */
+    games: number
+    /** The decklist, as `GET /catalog` gives it. */
+    list: Record<string, number>
+    /** The deck's name in `GET /catalog`. */
+    name: string
+    /** Within two years of `measured`. */
+    recent: boolean
+    /** The deck's own name: `name` without its ` (event, date)`. */
+    title: string
+    /** Its TWDA id. */
+    twda: string
+    /** Its victory points a game. */
+    vp: number
+    /**
+     * Its share of the victory points scored at its tables: 0.25 is
+     * even at four seats.
+     */
+    vp_share: number
+    /** Games it won. */
+    wins: number
+}
+
+/** The served weights' measure, weakest deck first. */
+export type TaughtDecks = {
+    /** By `vp_share`, the lowest first. */
+    decks: TaughtDeck[]
+    /** The engine commit the games ran on. */
+    engine: string
+    /**
+     * How, in one line: the deck at one seat, the weights on precons at
+     * the others, the games a deck.
+     */
+    measure: string
+    /** The day measured, `YYYY-MM-DD`. */
+    measured: string
+    /** The SHA-256 of the weights measured: `GET /version`'s `weights`. */
+    weights: string
+}
 
 /** A referendum's terms chosen so far. */
 export type Terms = {
