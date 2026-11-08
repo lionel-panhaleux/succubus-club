@@ -410,7 +410,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import { engineTaught } from '@/client/engine/host.ts'
 import type { TaughtDeck, TaughtDecks } from '@/client/engine/api.ts'
 import { useBusStore } from '@/client/store/bus.ts'
@@ -677,7 +677,8 @@ function loadFromPrecon(setId: string, preconId: string, name: string) {
 
 const TAUGHT_TAB = 'taught'
 
-const taught = ref<TaughtDecks | null>(null)
+// Not deep : a deck's list is stored as it is, and a reactive proxy cannot be cloned into the database
+const taught = shallowRef<TaughtDecks | null>(null)
 // The recent ones : the tab is about the decks played now
 const taughtDecks = computed(() => taught.value?.decks.filter(deck => deck.recent) ?? [])
 
