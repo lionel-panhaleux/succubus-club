@@ -1,6 +1,6 @@
-/* zvtes protocol 2.22.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.24.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.22.0'
+export const PROTOCOL_VERSION = '2.24.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -367,6 +367,26 @@ export type CardRef = {
     id?: number | null
 }
 
+/** A deck the engine ships, as `GET /catalog` names it, with what it is. */
+export type CatalogDeck = {
+    /** The event's day, `YYYY-MM-DD`. */
+    date?: string | null
+    /** The event it won. */
+    event?: string | null
+    kind: DeckKind
+    /** The decklist, as `GET /catalog` gives it. */
+    list: Record<string, number>
+    /** Its name in `GET /catalog`. */
+    name: string
+    /**
+     * The deck's own name: `name` without its ` (set)` (a precon's,
+     * a starter's) or ` (event, date)` (a tournament winner's).
+     */
+    title: string
+    /** A tournament winner's TWDA id. */
+    twda?: string | null
+}
+
 /**
  * What made a `pool`, `blood` or `counters` change: a cost paid or an effect, of a
  * card or of the rules.
@@ -495,6 +515,9 @@ export type Decision = {
     window: Window
 }
 
+/** Where a catalog deck comes from. */
+export type DeckKind = 'precon' | 'starter' | 'twda'
+
 export type DisciplineLevel = {
     /** The KRCG abbreviation, lowercase: `dom`, `aus`… */
     discipline: string
@@ -511,7 +534,7 @@ export type Due = {
 }
 
 /** What a minion phase waits for before it may end (`Decision::due`). */
-export type DueKind = 'hunt' | 'action' | 'take_control' | 'unknown'
+export type DueKind = 'hunt' | 'action' | 'take_control' | 'bleed' | 'unknown'
 
 /**
  * One thing an option does, to whom (docs/protocol.md §7): a curated
@@ -1424,6 +1447,14 @@ export type Purpose =
     | 'may_bottom_looked'
     | 'may_return_discards'
     | 'burn_over_capacity'
+    | 'burn_from_library_top'
+    | 'crypt_to_ready'
+    | 'steal_from_slot'
+    | 'blood_for_votes'
+    | 'store_from_ash_of'
+    | 'blood_to_card_up_to'
+    | 'may_lock_card_for_block'
+    | 'blood_or_pool'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1720,18 +1751,19 @@ export type Title = {
     /**
      * `primogen`, `prince`, `baron`, `justicar`, `inner_circle`,
      * `archbishop`, `bishop`, `cardinal`, `priscus`, `regent`, `magaji`,
-     * `independent` or `laibon` (a unique title named in `of`), `votes` (a
-     * title by its votes only).
+     * `independent`, `laibon` or `camarilla` (a unique title named in
+     * `of`), `votes` (a title by its votes only).
      */
     id: string
     /**
      * The city (a prince, a baron, an archbishop), the clan (a justicar,
-     * the Inner Circle) or an independent or Laibon title's name.
+     * the Inner Circle) or an independent, Laibon or Camarilla title's
+     * name.
      */
     of?: string | null
     /**
      * Its votes, when the title says them (`independent`, `laibon`,
-     * `votes`).
+     * `camarilla`, `votes`).
      */
     votes?: number | null
 }

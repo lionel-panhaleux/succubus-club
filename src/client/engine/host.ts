@@ -7,6 +7,7 @@
  */
 
 import type {
+    CatalogDeck,
     Decision,
     Event,
     GameSpec,
@@ -18,7 +19,6 @@ import type {
     TaughtDecks,
     Window,
 } from '@/client/engine/api.ts'
-import { DeckList } from '@/shared/types/gateway.ts'
 
 /**
  * One step of the game for the driver : a decision of the user's, a decision taken ( by anyone, the
@@ -49,9 +49,9 @@ export type EngineOut =
 // The engine server : engine.krcg.org, or another one in development ( a local zvtes-server )
 export const ENGINE_SERVER = import.meta.env.VITE_ENGINE_SERVER ?? 'https://engine.krcg.org'
 
-// The decks the engine ships : [name, deck list]
-export async function engineCatalog(): Promise<[string, DeckList][]> {
-    const res = await fetch(`${ENGINE_SERVER}/catalog`)
+// The decks the engine ships, each with what it is ( a preconstructed deck, a tournament winner )
+export async function engineCatalog(): Promise<CatalogDeck[]> {
+    const res = await fetch(`${ENGINE_SERVER}/catalog/decks`)
     if (!res.ok) {
         throw new Error(`The engine server cannot be reached : ${res.status}`)
     }

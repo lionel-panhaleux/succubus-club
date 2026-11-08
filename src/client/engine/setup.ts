@@ -15,16 +15,24 @@ import { InvalidDeck } from '@/shared/types/errors.ts'
 import { shuffleArray } from '@/shared/utils.ts'
 import { PlayerOid } from '@/shared/types/model.ts'
 import { DeckList } from '@/shared/types/gateway.ts'
-import { GameSpec, SpecError } from '@/client/engine/api.ts'
-import { EngineHost, engineCatalog, EngineRefused, savedEngineSeat } from '@/client/engine/host.ts'
+import { CatalogDeck, GameSpec, SpecError } from '@/client/engine/api.ts'
+import {
+    EngineHost,
+    engineCatalog,
+    EngineRefused,
+    engineTaught,
+    savedEngineSeat,
+} from '@/client/engine/host.ts'
 import { Projection } from '@/client/engine/projection.ts'
 import { engineOpportunities, runEngine } from '@/client/engine/driver.ts'
 
 const ENGINE_NB_BOTS = 3
-// The bots' decks are drawn among the engine's full preconstructed decks : the Fifth Edition
-// ones, the anniversary decks and the Sabbat V5 ones — not the New Blood minis ( half decks ),
-// nor the tournament winners
-const ENGINE_BOT_DECK = /\((Fifth Edition\b.*|.*Anniversary|Sabbat V5)\)$/
+// The bots' decks are drawn among the engine's preconstructed decks and the tournament winners
+// of the last months the served bot plays well enough : the others are left for the players to
+// teach it ( the Teach the bot tab ; owner, 2026-11-08 )
+const ENGINE_BOT_RECENT_MONTHS = 6
+// The least share of the VPs the served bot takes with a deck, by the training line's measure
+const ENGINE_BOT_MIN_VP_SHARE = 0.15
 // The server's bots play the trained network
 const ENGINE_BOT_PROFILE = 'network'
 
@@ -64,6 +72,29 @@ function sameDeck(a: DeckList, b: DeckList): boolean {
     return cards(a) == cards(b)
 }
 
+// A deck the bots may play : a preconstructed deck, or a tournament winner of the last months
+// whose measured VP share clears the floor ( a deck not measured yet waits for its measure )
+function botDeck(deck: CatalogDeck, today: Date, vpShare: Map<string, number>): boolean {
+    if (deck.kind == 'precon') {
+        return true
+    }
+    if (deck.kind != 'twda' || !deck.date) {
+        return false
+    }
+    // The same day of the month that many months back, clamped to that month's last day ( setMonth
+    // would roll Aug 31 over to Mar 3 )
+    const month = today.getMonth() - ENGINE_BOT_RECENT_MONTHS
+    const lastDay = new Date(today.getFullYear(), month + 1, 0).getDate()
+    const since = new Date(today.getFullYear(), month, Math.min(today.getDate(), lastDay))
+    return deck.date >= isoDay(since) && (vpShare.get(deck.name) ?? 0) >= ENGINE_BOT_MIN_VP_SHARE
+}
+
+// The local day, YYYY-MM-DD
+function isoDay(date: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+}
+
 // The user's deck refused by the server, or null ( another refusal )
 function deckErrorMessage(error: SpecError): string | null {
     switch (error.error) {
@@ -93,13 +124,14 @@ export async function setupEngineGame(): Promise<() => void> {
     }
 
     const deal = fixedDeal()
-    const catalog = await engineCatalog()
-    // Not the user's own deck, when it is one of the preconstructed decks
+    const [catalog, taught] = await Promise.all([engineCatalog(), engineTaught().catch(() => null)])
+    const vpShare = new Map(taught?.decks.map(deck => [deck.name, deck.vp_share]) ?? [])
+    // Not the user's own deck, when it is one of the catalog's decks
     const selfCards = core.selfDeck.cards
     const botDecks =
         deal ?
             deal.bots.map(name => {
-                const deck = catalog.find(([n]) => n == name)
+                const deck = catalog.find(d => d.name == name)
                 if (!deck) {
                     throw new Error(`The fixed deal's deck ${name} is not in the engine's catalog`)
                 }
@@ -107,7 +139,7 @@ export async function setupEngineGame(): Promise<() => void> {
             })
         :   shuffleArray(
                 catalog.filter(
-                    ([name, deck]) => ENGINE_BOT_DECK.test(name) && !sameDeck(deck, selfCards),
+                    deck => botDeck(deck, new Date(), vpShare) && !sameDeck(deck.list, selfCards),
                 ),
             )
 
@@ -133,8 +165,8 @@ export async function setupEngineGame(): Promise<() => void> {
                     },
                 }
             :   {
-                    name: `${BOT_NAME}${botOf(seat, selfSeat)} - ${botDecks[botOf(seat, selfSeat) - 1][0].split(' (')[0]}`,
-                    deck: botDecks[botOf(seat, selfSeat) - 1][1],
+                    name: `${BOT_NAME}${botOf(seat, selfSeat)} - ${botDecks[botOf(seat, selfSeat) - 1].title}`,
+                    deck: botDecks[botOf(seat, selfSeat) - 1].list,
                     player: { type: 'bot', profile: ENGINE_BOT_PROFILE },
                 },
         ),
