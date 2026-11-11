@@ -126,14 +126,17 @@
             <!-- With the rules engine : the pass of the decision under way, always here ( → / Space ),
                  the engine's text in its title ( "Decline to block", "End the master phase" ) ; a
                  pass that does something is also in the central box ( see isEffectPass ) ; one
-                 declining to block says so, styled as any pass -->
+                 declining to block says so, in amber ; sized as the bar's other buttons, both words
+                 kept in one cell so it never changes width -->
             <CommandButton
                 v-if="players.isPlayer && isEngine"
                 class="engine-fixed-pass"
+                :class="{ decline: engine.pending?.decline }"
                 :command="commands.AdvanceTurnPhase"
                 :title="pass?.text"
             >
-                {{ engine.pending?.decline ? 'Decline' : 'Pass' }}
+                <span :class="{ inactive: engine.pending?.decline }">Pass</span>
+                <span :class="{ inactive: !engine.pending?.decline }">Decline</span>
             </CommandButton>
             <!-- A switch : its knob right and teal when on -->
             <button
@@ -281,15 +284,28 @@ function pingCardsDuringCurrentPhase() {
     width: 262px;
 
     .engine-fixed-pass {
-        // The pass fills the row
-        flex: 1;
-        display: flex;
+        // The word in the first column, CommandButton's key after it
+        display: grid;
+        grid-template-columns: auto auto;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        font-size: 15px;
-        font-weight: bold;
-        white-space: nowrap;
+        column-gap: 6px;
+        // Under the phases block's left edge, where Unlock All starts
+        margin-right: auto;
+
+        > span {
+            grid-area: 1 / 1;
+            justify-self: center;
+        }
+
+        .inactive {
+            visibility: hidden;
+        }
+
+        &.decline {
+            color: $status-amber;
+            background: $alert-warning-bg;
+            border-color: $status-amber;
+        }
     }
 
     .engine-opportunities {
