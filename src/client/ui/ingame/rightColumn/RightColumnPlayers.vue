@@ -38,9 +38,16 @@
                 <!-- With the rules engine : a withdrawal announced, or done ( not an oust ) -->
                 <span
                     v-if="engine.withdrawals[player.oid]"
-                    class="withdrawal"
+                    class="seat-status"
                 >
                     {{ engine.withdrawals[player.oid] == 'withdrew' ? 'withdrew' : 'withdrawing' }}
+                </span>
+                <span
+                    v-if="engine.shattered[player.oid]"
+                    class="seat-status"
+                    title="Shatter the Gate : burns this much pool each unlock phase"
+                >
+                    shattered {{ engine.shattered[player.oid] }}
                 </span>
 
                 <span
@@ -163,7 +170,7 @@ $window-right: 340px;
             flex-shrink: 0;
         }
 
-        .withdrawal {
+        .seat-status {
             margin-right: 4px;
             font-style: italic;
             color: $ash-grey;

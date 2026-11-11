@@ -1,6 +1,6 @@
-/* zvtes protocol 2.24.2 (docs/protocol.md): generated from
+/* zvtes protocol 2.26.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.24.2'
+export const PROTOCOL_VERSION = '2.26.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -1097,6 +1097,7 @@ export type MarkerKind =
     | 'taint'
     | 'out_of_play'
     | 'contested'
+    | 'burn_counters'
     | 'unknown'
 
 export type MinionKind = 'vampire' | 'ally' | 'token' | 'created' | 'imbued' | 'unknown'
@@ -1394,6 +1395,7 @@ export type Purpose =
     | 'stored_to_library_top'
     | 'library_to_hand'
     | 'crypt_search'
+    | 'crypt_top_pick'
     | 'prey_slot_to_pool'
     | 'distribute_from'
     | 'circle_blood'
@@ -1412,6 +1414,7 @@ export type Purpose =
     | 'may_put_on'
     | 'may_add_counter'
     | 'may_store_aim'
+    | 'may_bottom_top'
     | 'may_torture'
     | 'may_gain_pool'
     | 'may_gain_hand_size'
@@ -1419,6 +1422,7 @@ export type Purpose =
     | 'name_master_discipline'
     | 'name_ash_equipment'
     | 'store_own_hand'
+    | 'store_up_to'
     | 'buy_title'
     | 'move_for_blood'
     | 'redraw'
@@ -1433,6 +1437,7 @@ export type Purpose =
     | 'reduction_at_resolution'
     | 'dual_form_kept'
     | 'ash_to_library_top'
+    | 'ash_to_library_bottom'
     | 'cut_library'
     | 'retake_from_ash'
     | 'may_lock_for_blood'
@@ -1455,6 +1460,18 @@ export type Purpose =
     | 'blood_to_card_up_to'
     | 'may_lock_card_for_block'
     | 'blood_or_pool'
+    | 'replace_from_research'
+    | 'placed_discipline'
+    | 'research_search'
+    | 'may_burn_edge_for_pool'
+    | 'library_to_top'
+    | 'second_copy_onto'
+    | 'return_before_burn'
+    | 'redirect_first'
+    | 'drain_before_steals'
+    | 'draw_up_to'
+    | 'bind_location'
+    | 'may_mill_copy'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1536,7 +1553,17 @@ export type SeatView = {
     prey: number
     ready: MinionView[]
     removed: Card[]
+    /**
+     * The research area (Research): face down, the cards seen by the
+     * seat only, backs to the others.
+     */
+    research?: Card[]
     seat: number
+    /**
+     * A shattered counter: the pool burned each unlock phase (Shatter
+     * the Gate); omitted with none.
+     */
+    shattered?: number
     torpor: MinionView[]
     /**
      * Library cards in the uncontrolled region with training counters
@@ -1890,6 +1917,7 @@ export type Zone =
     | 'stored'
     | 'training'
     | 'incapacitated'
+    | 'research'
     | 'unknown'
 
 export type ZoneRef = {

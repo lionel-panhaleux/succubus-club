@@ -335,7 +335,8 @@ export function engineRoles(option: OptionView): Roles {
     return running ? running.projection.roles(option) : {}
 }
 
-// The region of the table a search's zone is ( a seat's library, ash heap or hand )
+// The region of the table a search's zone is ( a seat's library, ash heap, crypt, hand, or its
+// research area, projected into the uncontrolled region )
 export function engineZoneRegion(zone: ZoneRef | null | undefined): AnyCardRegion | undefined {
     if (!running || !zone) {
         return undefined
@@ -345,6 +346,7 @@ export function engineZoneRegion(zone: ZoneRef | null | undefined): AnyCardRegio
         zone.zone == 'library' ? player.library
         : zone.zone == 'ash_heap' ? player.ashHeap
         : zone.zone == 'crypt' ? player.crypt
+        : zone.zone == 'research' ? player.uncontrolled
         : player.hand
     )
 }
@@ -393,7 +395,8 @@ export async function engineFeedback(text: string): Promise<number | null> {
 // closes after them, unless the user opened another
 function showSearch(current: Running) {
     const panel = useGameBusStore().wieldCardStack
-    const searched = searchedRegions.value.filter(region => !region.is.hand)
+    // A hand's or a play region's cards are on the table already ( a research area : uncontrolled )
+    const searched = searchedRegions.value.filter(region => !region.is.hand && !region.is.play)
     if (searched.length > 0) {
         if (!searched.some(region => region.oid == current.searchOpened)) {
             panel.show = true

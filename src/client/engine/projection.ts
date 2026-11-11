@@ -110,6 +110,7 @@ enum Spot {
     Limbo,
     Torpor,
     Uncontrolled,
+    Aside, // out of play by the uncontrolled vampires, no slot : a research area, training
 }
 
 // Where a copy is, and in which state, according to the view
@@ -379,7 +380,9 @@ export class Projection {
                 seat.hand.length +
                 seat.ash_heap.length +
                 seat.removed.length +
-                seat.uncontrolled.length +
+                seat.uncontrolled.reduce((n, slot) => n + 1 + (slot.cards?.length ?? 0), 0) +
+                (seat.research?.length ?? 0) +
+                (seat.training?.length ?? 0) +
                 seat.limbo.length +
                 [...seat.ready, ...seat.torpor, ...(seat.incapacitated ?? [])].reduce(
                     (n, minion) =>
@@ -469,7 +472,45 @@ export class Projection {
                     isLocked: false,
                     isFlipped: false,
                 })
+                ;(slot.cards ?? [])
+                    .map(c => seen(c))
+                    .forEach((attached, attachedRank) =>
+                        placements.set(attached.copy, {
+                            card: attached,
+                            player,
+                            region: player.uncontrolled,
+                            spot: Spot.Attached,
+                            host: card.copy,
+                            rank: attachedRank,
+                            blood: 0,
+                            greenCounter: 0,
+                            isLocked: false,
+                            isFlipped: false,
+                        }),
+                    )
             })
+            const aside = (cards: Seen[], label: string, counters: (rank: number) => number) =>
+                cards.forEach((card, rank) =>
+                    placements.set(card.copy, {
+                        card,
+                        player,
+                        region: player.uncontrolled,
+                        spot: Spot.Aside,
+                        rank,
+                        blood: 0,
+                        greenCounter: counters(rank),
+                        markers: [label],
+                        isLocked: false,
+                        isFlipped: false,
+                    }),
+                )
+            aside(pile(7, seat.research ?? []), 'Research', () => 0)
+            const training = seat.training ?? []
+            aside(
+                training.map(t => seen(t.card)),
+                'Training',
+                rank => training[rank].counters ?? 0,
+            )
 
             const inPlay = (
                 inPlayCard: InPlayView,
@@ -739,7 +780,8 @@ export class Projection {
         const start = GRID_SIZE + rank * CARD_SPACING_X
 
         switch (placement.spot) {
-            case Spot.Uncontrolled: {
+            case Spot.Uncontrolled:
+            case Spot.Aside: {
                 // The first slot no card covers : those already there stay
                 // where they are, so once one left, the rank alone placed a
                 // newcomer past the row, behind the panel ( Family Gathering )
@@ -903,6 +945,7 @@ export class Projection {
         // The engine knows the victory points and who is ousted ( a pool at 0
         // is not always an oust, an oust not always a point to the predator )
         const withdrawals: Record<string, 'withdrawing' | 'withdrew'> = {}
+        const shattered: Record<string, number> = {}
         for (const seat of view.seats) {
             const player = this.player(seat.seat)
             player.isOusted = seat.ousted
@@ -910,8 +953,12 @@ export class Projection {
             if (seat.withdrew || seat.withdrawing) {
                 withdrawals[player.oid] = seat.withdrew ? 'withdrew' : 'withdrawing'
             }
+            if (seat.shattered) {
+                shattered[player.oid] = seat.shattered
+            }
         }
         useEngineStore().withdrawals = withdrawals
+        useEngineStore().shattered = shattered
     }
 
     private setTurn(view: TableView) {

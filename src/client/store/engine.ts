@@ -88,6 +88,8 @@ export const useEngineStore = defineStore('engine', {
         // A withdrawal from the game, by player oid : announced, or done ( out of the game with
         // half a victory point, not ousted though the engine counts the seat out )
         withdrawals: {} as Record<string, 'withdrawing' | 'withdrew'>,
+        // A shattered counter, by player oid : the pool it burns each unlock phase ( Shatter the Gate )
+        shattered: {} as Record<string, number>,
         // Why the user's last move on the table was no decision, for a moment ( beside the Pass )
         notice: '',
         // The game's log ( see log.ts ) : its lines, the seats' colors
