@@ -144,6 +144,9 @@ export function effectsText(effects: Effect[] | null | undefined): string {
             if (effect.kind == 'end_combat') {
                 return 'ends combat'
             }
+            if (effect.kind == 'burn' && effect.detail == 'all_boons') {
+                return 'burn every boon'
+            }
             if (COUNTED.has(effect.kind) && effect.n != null) {
                 return `${effect.x ? `${signed(effect.n)}X` : signed(effect.n)} ${name}`
             }

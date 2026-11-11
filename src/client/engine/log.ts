@@ -787,9 +787,15 @@ export class EngineLogBuilder {
                     { text: ` ${votesText(choice)}` },
                 ])
                 return
-            case 'cast_card_vote':
-                this.current = this.line(seat, [{ text: `the card's vote: ${votesText(choice)}` }])
+            // The political action card's vote, or Business Pressure's round : 1 pool burned
+            // for its votes ( a `pool` cost ), the pool event itself left out ( see 'pool' )
+            case 'cast_card_vote': {
+                const burns = choice.effects?.some(effect => effect.kind == 'pool' && effect.cost)
+                this.current = this.line(seat, [
+                    { text: `${burns ? 'burns 1 pool' : "the card's vote"}: ${votesText(choice)}` },
+                ])
                 return
+            }
             case 'burn_for_vote':
                 this.current = this.line(seat, [
                     { text: 'burns ' },
