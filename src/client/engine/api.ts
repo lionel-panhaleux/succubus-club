@@ -1,6 +1,6 @@
-/* zvtes protocol 2.34.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.35.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.34.0'
+export const PROTOCOL_VERSION = '2.35.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -801,6 +801,10 @@ export type Event = {
           turn: number
       }
     | {
+          kind: 'turn_order'
+          reversed: boolean
+      }
+    | {
           kind: 'phase'
           phase: Phase
       }
@@ -827,7 +831,8 @@ export type Event = {
            * `library`: the top of `seat`'s library, top first — the looking
            * seat's own (Anna "Dictatrix11" Suljic) or the active Methuselah's
            * (Weirding Stone); `crypt`: the top of `seat`'s crypt (Sabbat
-           * Inquisitor); absent, the hand.
+           * Inquisitor); `uncontrolled`: a card of `seat`'s uncontrolled
+           * region (Harrod); absent, the hand.
            */
           zone?: Zone | null
       }
@@ -1121,6 +1126,8 @@ export type MarkerKind =
     | 'burn_counters'
     | 'founder_counters'
     | 'transfusion_counters'
+    | 'research_counters'
+    | 'seduction_counters'
     | 'unknown'
 
 export type MinionKind = 'vampire' | 'ally' | 'token' | 'created' | 'imbued' | 'unknown'
@@ -1554,6 +1561,15 @@ export type Purpose =
     | 'name_ash_retainer'
     | 'may_hunt_blood_to_pool'
     | 'found_version'
+    | 'may_discard_to_keep'
+    | 'boon_auction'
+    | 'hide_one_card'
+    | 'look_prey_slot'
+    | 'may_lock_for_discipline_search'
+    | 'coerced_side'
+    | 'played_card_to_hand'
+    | 'name_target_ash_card'
+    | 'may_cancel_hunting_ground'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1779,6 +1795,11 @@ export type TableView = {
     transfers?: number | null
     /** Game turn, from 1. */
     turn: number
+    /**
+     * Turns go to the right, to each seat's predator (Reversal of
+     * Fortunes); the prey is still to the left.
+     */
+    turns_reversed?: boolean
     /** The viewing seat; absent: every card shown (records, tests). */
     viewer?: number | null
 }

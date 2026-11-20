@@ -21,7 +21,14 @@ import type {
     Target,
     Window,
 } from '@/client/engine/api.ts'
-import { actionName, effectsText, signed, strikeName } from '@/client/engine/labels.ts'
+import {
+    actionName,
+    effectsText,
+    lookedZone,
+    ownLookedZone,
+    signed,
+    strikeName,
+} from '@/client/engine/labels.ts'
 import type { TextSegment } from '@/client/engine/cardNames.ts'
 import { isCryptId } from '@/shared/model/Card.ts'
 
@@ -523,18 +530,12 @@ export class EngineLogBuilder {
                 this.line(
                     this.viewer,
                     [
-                        ...(e.zone == 'library' && e.seat == this.viewer ?
-                            [{ text: 'looks at the top of their library: ' }]
-                        : e.zone == 'library' ?
-                            [
-                                { text: 'looks at the top of ' },
-                                this.seatSegment(e.seat),
-                                { text: "'s library: " },
-                            ]
+                        ...(e.seat == this.viewer ?
+                            [{ text: `looks at ${ownLookedZone(e.zone)}: ` }]
                         :   [
-                                { text: 'looks at ' },
+                                { text: `looks at ${lookedZone(e.zone)[0]}` },
                                 this.seatSegment(e.seat),
-                                { text: "'s hand: " },
+                                { text: `${lookedZone(e.zone)[1]}: ` },
                             ]),
                         ...(cards.length > 0 ? cards : [{ text: 'no card' }]),
                     ],

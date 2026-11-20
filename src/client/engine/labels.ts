@@ -11,6 +11,7 @@ import type {
     Strike,
     StrikeKind,
     Window,
+    Zone,
 } from '@/client/engine/api.ts'
 import { gameResources } from '@/shared/registries.ts'
 
@@ -209,4 +210,32 @@ export function minionMarkers(markers: Marker[]): { chips: EngineChip[]; labels:
         }
     }
     return { chips, labels }
+}
+
+// A zone looked at ( a `looked` event ), around its Methuselah : "the top of " P2 "'s library" ; no
+// zone, the hand
+export function lookedZone(zone: Zone | null | undefined): [string, string] {
+    switch (zone) {
+        case 'library':
+            return ['the top of ', "'s library"]
+        case 'crypt':
+            return ['the top of ', "'s crypt"]
+        case 'uncontrolled':
+            return ['', "'s uncontrolled region"]
+        default:
+            return ['', "'s hand"]
+    }
+}
+
+// The user's own zone looked at : "the top of their library"
+export function ownLookedZone(zone: Zone | null | undefined): string {
+    const [before, after] = lookedZone(zone)
+    return `${before}their${after.slice(2)}`
+}
+
+// The look shown until closed, as a title : "The top of P2's library", "Your hand"
+export function lookedName(looked: { seat: number; zone: Zone | null; own: boolean }): string {
+    const [before, after] = lookedZone(looked.zone)
+    const name = `${before}${looked.own ? `your${after.slice(2)}` : `P${looked.seat + 1}${after}`}`
+    return name.charAt(0).toUpperCase() + name.slice(1)
 }

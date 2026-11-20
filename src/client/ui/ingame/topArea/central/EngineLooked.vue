@@ -2,13 +2,7 @@
     <CentralPanel
         v-if="engine.looked"
         class="engine-looked"
-        :title="
-            engine.looked.library && engine.looked.own ?
-                'The top of your library, as you looked at it'
-            : engine.looked.library ?
-                `The top of P${engine.looked.seat + 1}'s library, as you looked at it`
-            :   `P${engine.looked.seat + 1}'s hand, as you looked at it`
-        "
+        :title="`${lookedName(engine.looked)}, as you looked at it`"
     >
         <div class="engine-looked-cards">
             <EngineText :pieces="cards" />
@@ -38,6 +32,7 @@ import { useEngineStore } from '@/client/store/engine.ts'
 import type { LogSegment } from '@/client/engine/log.ts'
 import { gameResources } from '@/shared/registries.ts'
 import { isCryptId } from '@/shared/model/Card.ts'
+import { lookedName } from '@/client/engine/labels.ts'
 
 const engine = useEngineStore()
 

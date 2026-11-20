@@ -358,7 +358,7 @@ export function engineZoneRegion(zone: ZoneRef | null | undefined): AnyCardRegio
         zone.zone == 'library' ? player.library
         : zone.zone == 'ash_heap' ? player.ashHeap
         : zone.zone == 'crypt' ? player.crypt
-        : zone.zone == 'research' ? player.uncontrolled
+        : zone.zone == 'research' || zone.zone == 'uncontrolled' ? player.uncontrolled
         : player.hand
     )
 }
@@ -478,7 +478,7 @@ function tell(current: Running, out: EngineOut) {
         if (event.kind == 'looked') {
             engine.looked = {
                 seat: event.seat,
-                library: event.zone == 'library',
+                zone: event.zone ?? null,
                 own: event.seat == out.view.viewer,
                 cards: event.cards.flatMap(card => (card.id != null ? [card.id] : [])),
             }

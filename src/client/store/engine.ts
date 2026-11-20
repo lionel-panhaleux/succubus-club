@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { Allocation, OptionView, VoteTotals, Window } from '@/client/engine/api.ts'
+import type { Allocation, OptionView, VoteTotals, Window, Zone } from '@/client/engine/api.ts'
 import type { EngineChip } from '@/client/engine/labels.ts'
 import type { EngineLogEntry } from '@/client/engine/log.ts'
 
@@ -69,9 +69,14 @@ export const useEngineStore = defineStore('engine', {
         referendumText: '',
         // The cards played during the action under way, by whom ( the log's line ), until it is over
         played: [] as { decision: number; player: string; text: string; option: OptionView }[],
-        // The last hand ( or library top ) the user looked at : its seat, whether the library is the
-        // user's own, and its cards, until closed
-        looked: null as { seat: number; library: boolean; own: boolean; cards: number[] } | null,
+        // The last hand ( or library or crypt top, uncontrolled card ) the user looked at : its seat,
+        // its zone ( none : the hand ), whether it is the user's own, and its cards, until closed
+        looked: null as {
+            seat: number
+            zone: Zone | null
+            own: boolean
+            cards: number[]
+        } | null,
         // The cards on their way to play ( limbo ), by oid : not in play yet
         limbo: [] as string[],
         // A minion's counted markers ( hostage, nightmare, torture, a lasting effect's counters ),
