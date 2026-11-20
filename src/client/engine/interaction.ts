@@ -598,10 +598,11 @@ export function answeredOnTable(option: OptionView): boolean {
         case 'set_x':
             return xOptions(options).length > 0
         // The Edge glows : a click gains its pool or casts its vote ( see edgeOptions ) ; the votes
-        // panel holds the Edge's and the political action card's vote too
+        // panel holds the Edge's, the political action card's and the votes it grants too
         case 'edge_pool':
         case 'cast_edge':
         case 'cast_card_vote':
+        case 'cast_granted_votes':
             return true
         // The hand card's own button glows ( 🔥, To Bottom : see CardInHandGO )
         case 'burn_for_vote':
@@ -654,11 +655,12 @@ export const edgeOptions = computed((): OptionView[] =>
     ),
 )
 
-// The votes of a polling that are no vampire's : the Edge's, the political action card's ( buttons
-// beside "All my votes" )
+// The votes of a polling that are no vampire's : the Edge's, the political action card's, those
+// it grants a Methuselah ( Trumped-Up Charges ) : buttons beside "All my votes"
+const METHUSELAH_VOTES = ['cast_edge', 'cast_card_vote', 'cast_granted_votes']
 export const methuselahVoteOptions = computed((): OptionView[] =>
-    (useEngineStore().pending?.options ?? []).filter(
-        option => option.kind == 'cast_edge' || option.kind == 'cast_card_vote',
+    (useEngineStore().pending?.options ?? []).filter(option =>
+        METHUSELAH_VOTES.includes(option.kind),
     ),
 )
 

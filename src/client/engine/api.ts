@@ -1,6 +1,6 @@
-/* zvtes protocol 2.33.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.34.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.33.0'
+export const PROTOCOL_VERSION = '2.34.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -1256,6 +1256,8 @@ export type OptionKind =
     | 'torpor_after_resolution'
     | 'meet_as'
     | 'end_combat'
+    | 'cast_granted_votes'
+    | 'version'
     | 'unknown'
 
 /**
@@ -1544,6 +1546,14 @@ export type Purpose =
     | 'favor_auction'
     | 'contest_payment'
     | 'extra_hires'
+    | 'may_join_sect'
+    | 'burn_locations_for_pool'
+    | 'placed_clan'
+    | 'retainer_damage_order'
+    | 'may_move_edge_pool'
+    | 'name_ash_retainer'
+    | 'may_hunt_blood_to_pool'
+    | 'found_version'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1917,7 +1927,15 @@ export type Vote = {
 }
 
 /** Where votes come from. */
-export type VoteSource = 'edge' | 'vampire' | 'printed' | 'card' | 'in_play' | 'pool' | 'unknown'
+export type VoteSource =
+    | 'edge'
+    | 'vampire'
+    | 'printed'
+    | 'card'
+    | 'in_play'
+    | 'pool'
+    | 'granted'
+    | 'unknown'
 
 /**
  * The votes the seat can cast now each way, all at once with

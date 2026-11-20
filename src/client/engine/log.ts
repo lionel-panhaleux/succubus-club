@@ -796,6 +796,10 @@ export class EngineLogBuilder {
                 ])
                 return
             }
+            // The votes the political action card grants a Methuselah ( Trumped-Up Charges )
+            case 'cast_granted_votes':
+                this.current = this.line(seat, [{ text: `the card's votes: ${votesText(choice)}` }])
+                return
             case 'burn_for_vote':
                 this.current = this.line(seat, [
                     { text: 'burns ' },
