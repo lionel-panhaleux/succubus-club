@@ -232,9 +232,15 @@
             >
                 <EngineText :text="pending.prompt" />
             </div>
+            <!-- A card named : completed among the library's names -->
+            <EngineNameCard
+                v-for="option in namings"
+                :key="option.index"
+                :option="option"
+            />
             <div class="engine-choices-buttons">
                 <button
-                    v-for="option in leftovers"
+                    v-for="option in buttons"
                     :key="option.index"
                     class="game-button small"
                     @click="choose(option)"
@@ -259,6 +265,7 @@ import { windowName } from '@/client/engine/labels.ts'
 import { computed, ref, watch } from 'vue'
 import { hoverEngineCard } from '@/client/engine/cardNames.ts'
 import EngineText from '@/client/ui/ingame/EngineText.vue'
+import EngineNameCard from '@/client/ui/ingame/topArea/central/EngineNameCard.vue'
 import CentralPanel from '@/client/ui/ingame/topArea/central/CentralPanel.vue'
 import { EngineCombatSideView, useEngineStore } from '@/client/store/engine.ts'
 import {
@@ -284,6 +291,8 @@ const engine = useEngineStore()
 
 const pending = computed(() => engine.pending)
 const leftovers = leftoverOptions
+const namings = computed(() => leftovers.value.filter(option => option.kind == 'name_card'))
+const buttons = computed(() => leftovers.value.filter(option => option.kind != 'name_card'))
 const methuselahVotes = methuselahVoteOptions
 
 // The allocation of points under way : the amounts per recipient, all 0 at first

@@ -1,6 +1,6 @@
-/* zvtes protocol 2.27.0 (docs/protocol.md): generated from
+/* zvtes protocol 2.33.0 (docs/protocol.md): generated from
  * crates/api/schema.json by scripts/gen_ts.py, do not edit. */
-export const PROTOCOL_VERSION = '2.27.0'
+export const PROTOCOL_VERSION = '2.33.0'
 
 /**
  * A command as sent: an optional client id, echoed by an `error` it
@@ -15,6 +15,7 @@ export type In = {
           type: 'join'
       }
     | {
+          card?: number | null
           decision: number
           option: number
           type: 'answer'
@@ -273,6 +274,11 @@ export type ActionView = {
      */
     declining?: boolean
     intercept?: number | null
+    /**
+     * The second vampire of a joint block attempt (Coterie Tactics), or of
+     * a joint block the one not picked as the blocker.
+     */
+    joint_blocker?: number | null
     kind: ActionKind
     /** Its mode (Disciplines, level) and X. */
     mode?: Mode | null
@@ -362,7 +368,10 @@ export type Card = {
  */
 export type CardRef = {
     copy?: number | null
-    /** Played from cards stored on this card in play, not from the hand. */
+    /**
+     * Played from cards stored on this card in play (or minion: Hukros),
+     * not from the hand.
+     */
     from?: number | null
     id?: number | null
 }
@@ -460,6 +469,13 @@ export type CombatSide = {
     maneuvers: number
     minion: number
     presses: number
+    /**
+     * A minion out of the combat striking beside this one (Winged
+     * Second).
+     */
+    second?: number | null
+    /** The second's strike this round, once declared. */
+    second_strike?: Strike | null
     /**
      * Its strike once declared (the blocker chooses knowing the acting
      * minion's), kept shown once resolved until the next pair.
@@ -717,6 +733,10 @@ export type Error =
           index: number
       }
     | {
+          error: 'card'
+          id?: number | null
+      }
+    | {
           error: 'no_undo'
       }
     | {
@@ -806,7 +826,8 @@ export type Event = {
           /**
            * `library`: the top of `seat`'s library, top first — the looking
            * seat's own (Anna "Dictatrix11" Suljic) or the active Methuselah's
-           * (Weirding Stone); absent, the hand.
+           * (Weirding Stone); `crypt`: the top of `seat`'s crypt (Sabbat
+           * Inquisitor); absent, the hand.
            */
           zone?: Zone | null
       }
@@ -1098,6 +1119,8 @@ export type MarkerKind =
     | 'out_of_play'
     | 'contested'
     | 'burn_counters'
+    | 'founder_counters'
+    | 'transfusion_counters'
     | 'unknown'
 
 export type MinionKind = 'vampire' | 'ally' | 'token' | 'created' | 'imbued' | 'unknown'
@@ -1116,6 +1139,8 @@ export type MinionView = {
     name: string
     /** The Methuselah whose ash heap it goes to, when not its controller. */
     owner?: number | null
+    /** Cards stored on it face down (Hukros), hidden to others, top last. */
+    stored?: Card[]
     title?: Title | null
     /** Its traits as they stand (Black Hand gained included). */
     traits?: Trait[]
@@ -1224,8 +1249,13 @@ export type OptionKind =
     | 'burn_corruption_to_unlock'
     | 'diablerise'
     | 'cancel_combat'
+    | 'name_card'
     | 'withdraw_from_game'
     | 'follow_path'
+    | 'skip_turn'
+    | 'torpor_after_resolution'
+    | 'meet_as'
+    | 'end_combat'
     | 'unknown'
 
 /**
@@ -1472,6 +1502,48 @@ export type Purpose =
     | 'draw_up_to'
     | 'bind_location'
     | 'may_mill_copy'
+    | 'burn_order'
+    | 'may_skip_turn'
+    | 'looked_to_hand'
+    | 'masters_from_hand'
+    | 'may_take_title'
+    | 'may_take_edge'
+    | 'torpor_massacre'
+    | 'take_counters_up_to'
+    | 'guess_number'
+    | 'bid'
+    | 'named_x'
+    | 'may_burn_blood_to_burn_pool'
+    | 'name_any_ash_minion'
+    | 'represent_picks'
+    | 'burn_copies_pick'
+    | 'replace_from_ash'
+    | 'may_burn_instead_of_unlock'
+    | 'may_burn_weapon'
+    | 'may_set_next_range'
+    | 'block_would_succeed'
+    | 'may_gain_blood'
+    | 'keep_spent_blood'
+    | 'burn_replacement'
+    | 'pool_or_minion_burned'
+    | 'rock_paper_scissors'
+    | 'may_lock_to_discard_looked'
+    | 'entry_remove_for_life'
+    | 'blood_or_no_strike'
+    | 'name_action_discipline'
+    | 'named_onto_or_damage'
+    | 'damage_voter_for_blood'
+    | 'may_discard_for_block'
+    | 'may_take_aggravated_as_normal'
+    | 'retainer_burns_weapon_or_damage'
+    | 'master_from_hand_or_burn'
+    | 'may_burn_blood_to_peek'
+    | 'combat_stand_in'
+    | 'retainer_search'
+    | 'burn_blood_up_to'
+    | 'favor_auction'
+    | 'contest_payment'
+    | 'extra_hires'
     | 'unknown'
 
 export type Range = 'close' | 'long' | 'unknown'
@@ -1668,6 +1740,8 @@ export type StrikeKind =
     | 'card_effect'
     | 'steal_weapon'
     | 'burn_life'
+    | 'steal_equipment'
+    | 'steal_minion'
     | 'unknown'
 
 export type StruckSide = {

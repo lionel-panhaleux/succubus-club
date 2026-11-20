@@ -19,6 +19,7 @@ import type {
     TaughtDecks,
     Window,
 } from '@/client/engine/api.ts'
+import { isCryptId } from '@/shared/model/Card.ts'
 
 /**
  * One step of the game for the driver : a decision of the user's, a decision taken ( by anyone, the
@@ -69,6 +70,21 @@ export async function engineTaught(): Promise<TaughtDecks | null> {
         throw new Error(`The engine server cannot be reached : ${res.status}`)
     }
     return res.json()
+}
+
+// The library cards the engine plays, by name ( `GET /cards`, its crypt cards left out ) : what a
+// play naming a card answers ( a `name_card` option ). Fetched once
+let libraryCards: Promise<{ id: number; name: string }[]> | null = null
+export function engineLibraryCards(): Promise<{ id: number; name: string }[]> {
+    libraryCards ??= fetch(`${ENGINE_SERVER}/cards`).then(async res => {
+        if (!res.ok) {
+            throw new Error(`The engine server cannot be reached : ${res.status}`)
+        }
+        const cards: [number, string][] = await res.json()
+        return cards.filter(([id]) => !isCryptId(id)).map(([id, name]) => ({ id, name }))
+    })
+    libraryCards.catch(() => (libraryCards = null))
+    return libraryCards
 }
 
 // A game the server refuses to create ( a deck it cannot play... )
@@ -562,11 +578,11 @@ export class EngineHost {
     }
 
     // Answer the pending human decision
-    async answer(decision: number, index: number): Promise<EngineOut> {
+    async answer(decision: number, index: number, card?: number): Promise<EngineOut> {
         // A decision the server took already ( passed by itself ) : the answer is moot, the game
         // goes on
         if (decision == this.lastDecision && !this.answered) {
-            this.send({ type: 'answer', decision, option: index })
+            this.send({ type: 'answer', decision, option: index, card })
         }
         return this.next()
     }

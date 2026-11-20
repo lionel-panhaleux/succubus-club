@@ -6,7 +6,7 @@
  */
 
 import { ref } from 'vue'
-import { EngineHost, EngineTaken } from '@/client/engine/host.ts'
+import { EngineHost, EngineTaken, engineLibraryCards } from '@/client/engine/host.ts'
 import { Projection, Roles } from '@/client/engine/projection.ts'
 import type {
     Allocation,
@@ -45,9 +45,10 @@ const AUTOPLAY = !!import.meta.env.VITE_ENGINE_AUTOPLAY
 const BOT_DECISION_PAUSE = 500
 const BOT_PASS_PAUSE = 120
 
-// What the user answers : an option, taking back a step, a whole allocation, or all their votes one way
+// What the user answers : an option ( with the card it names, a `name_card` option ), taking back a
+// step, a whole allocation, or all their votes one way
 type Answer =
-    | { index: number }
+    | { index: number; card?: number }
     | { undo: true }
     | { amounts: number[] }
     | { favor: boolean }
@@ -128,8 +129,13 @@ export function stopEngine() {
 }
 
 // The user takes the pending decision
-export function chooseEngineOption(index: number) {
-    running?.answer?.({ index })
+export function chooseEngineOption(index: number, card?: number) {
+    // A card named is answered with the card ( the central box's completion ), never without
+    const option = useEngineStore().pending?.options.find(o => o.index == index)
+    if (option?.kind == 'name_card' && card === undefined) {
+        return
+    }
+    running?.answer?.({ index, card })
 }
 
 // The pass of the decision under way ( "Decline to block", "End the master phase"… ) : one fixed
@@ -230,8 +236,9 @@ function combatOf(view: TableView, seat: number): EngineCombat | null {
     }
 }
 
-// Dev autoplay : an option at random, sometimes the allocation or the votes at once
-function autoplay(out: EngineOut & { type: 'decision' }): Answer {
+// Dev autoplay : an option at random, sometimes the allocation or the votes at once ; a card named at
+// random
+async function autoplay(out: EngineOut & { type: 'decision' }): Promise<Answer> {
     if (out.allocation && Math.random() < 0.5) {
         return { amounts: randomAmounts(out.allocation) }
     }
@@ -247,7 +254,12 @@ function autoplay(out: EngineOut & { type: 'decision' }): Answer {
     if (staged) {
         return { index: staged.index }
     }
-    return { index: Math.floor(Math.random() * out.options.length) }
+    const option = out.options[Math.floor(Math.random() * out.options.length)]
+    if (option.kind == 'name_card') {
+        const cards = await engineLibraryCards()
+        return { index: option.index, card: cards[Math.floor(Math.random() * cards.length)].id }
+    }
+    return { index: option.index }
 }
 
 /**
@@ -618,7 +630,7 @@ export async function runEngine(host: EngineHost, projection: Projection) {
                     }
                 }
                 if (AUTOPLAY) {
-                    sleep(0).then(() => resolve(autoplay(out)))
+                    sleep(0).then(async () => resolve(await autoplay(out)))
                 }
             })
             current.answer = null
@@ -647,7 +659,7 @@ export async function runEngine(host: EngineHost, projection: Projection) {
                 current.log.say(out.seat, 'takes back their last decision')
                 continue
             }
-            narrate(current, await host.answer(out.decision, answer.index))
+            narrate(current, await host.answer(out.decision, answer.index, answer.card))
         }
     } catch (error) {
         // An earlier game's failure : the store is the game's now running
